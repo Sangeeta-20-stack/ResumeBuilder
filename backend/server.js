@@ -8,6 +8,10 @@ const resumeRoutes = require("./routes/resumeRoutes");
 
 const app = express();
 
+// Middleware for JSON + FormData
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 // CORS
 app.use(
   cors({
@@ -17,27 +21,23 @@ app.use(
   })
 );
 
-// Connect DB
+// Connect to Database
 connectDB();
-
-// Middleware for JSON + FormData support
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/resume", resumeRoutes);
 
-// Static file for uploads
+// Serve uploads folder
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), {
     setHeaders: (res) => {
-      res.set("Access-Control-Allow-Origin", process.env.CLIENT_URL);
+      res.set("Access-Control-Allow-Origin", process.env.CLIENT_URL || "*");
     },
   })
 );
 
-// Start Server
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

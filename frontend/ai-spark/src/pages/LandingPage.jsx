@@ -1,21 +1,33 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaEdit, FaPalette, FaChartLine } from "react-icons/fa";
-import { Link } from "react-router-dom"; // Fixed missing import
-import Container from "../components/Container"; // Make sure this exists
-import hero from "../assets/hero.png"; // Make sure the image exists
+import Container from "../components/Container";
+import hero from "../assets/hero.png";
+import Login from "./Auth/Login";
+import Signup from "./Auth/SignUp";
 
 
+const LandingPage = () => {
+  const [openAuthModal, setOpenAuthModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState("login"); // "login" or "signup"
 
-export default function LandingPage() {
+  const handleCTA = () => {
+    setCurrentPage("signup");
+    setOpenAuthModal(true);
+  };
+
+  const openLogin = () => {
+    setCurrentPage("login");
+    setOpenAuthModal(true);
+  };
+
+ // const closeModal = () => setOpenAuthModal(false);
+
   return (
     <div>
-
-      {/* NAVBAR ON TOP */}
+      {/* NAVBAR */}
       <div className="sticky top-0 z-50 bg-white/30 backdrop-blur-lg border-b border-pink-300 py-4">
         <Container>
           <div className="flex items-center justify-between">
-
-            {/* Gradient Title with animation */}
             <h1
               className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent
                          bg-gradient-to-r from-pink-500 via-orange-400 to-purple-500
@@ -24,28 +36,23 @@ export default function LandingPage() {
               CV Spark
             </h1>
 
-            {/* Login Button */}
-            <Link
-              to="/login"
+            <button
+              onClick={openLogin}
               className="px-6 py-2 bg-gradient-to-r from-pink-500 via-orange-400 to-purple-500 
                          text-white rounded-full font-semibold shadow-lg hover:shadow-2xl 
                          hover:scale-105 transition-all duration-300"
             >
               Login / Sign Up
-            </Link>
-
+            </button>
           </div>
         </Container>
       </div>
 
-      {/* MAIN LANDING SECTION */}
+      {/* MAIN SECTION */}
       <div className="py-16 bg-gradient-to-b from-pink-50 to-purple-50 border-4 border-pink-300 rounded-2xl mt-6 px-6 md:px-16">
-
-        {/* HERO CONTENT */}
         <Container>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-
-            {/* LEFT SIDE CONTENT */}
+            {/* LEFT SIDE */}
             <div>
               <h2 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent 
                   bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 leading-tight">
@@ -54,17 +61,18 @@ export default function LandingPage() {
                   in Minutes
                 </span>
               </h2>
-
               <p className="text-gray-700 mt-4 text-lg md:text-xl font-medium">
                 Create ATS-friendly, beautiful resumes with live templates, smart editing, 
                 and one-click PDF export.
               </p>
-
               <div className="mt-8">
-                <button className="px-8 py-3 text-white font-bold rounded-full 
-                  bg-gradient-to-r from-pink-500 via-orange-400 to-purple-500 
-                  shadow-lg hover:from-purple-500 hover:to-pink-500 hover:scale-105 
-                  transition-all duration-300 animate-pulse">
+                <button
+                  onClick={handleCTA}
+                  className="px-8 py-3 text-white font-bold rounded-full 
+                    bg-gradient-to-r from-pink-500 via-orange-400 to-purple-500 
+                    shadow-lg hover:from-purple-500 hover:to-pink-500 hover:scale-105 
+                    transition-all duration-300 animate-pulse"
+                >
                   GET STARTED
                 </button>
               </div>
@@ -79,24 +87,19 @@ export default function LandingPage() {
                  shadow-2xl rounded-3xl"
               />
             </div>
-
           </div>
         </Container>
 
-        {/* FEATURES SECTION */}
+        {/* FEATURES */}
         <div className="py-20 mt-20">
           <Container>
-
-            {/* HEADING */}
             <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-12 
                 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-orange-500 to-purple-500">
               Features that make you shine
             </h2>
 
-            {/* FEATURES GRID */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-
-              {/* CARD 1 */}
+              {/* Card 1 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaEdit className="text-pink-500 mx-auto text-5xl mb-4" />
@@ -110,7 +113,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* CARD 2 */}
+              {/* Card 2 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaPalette className="text-orange-500 mx-auto text-5xl mb-4" />
@@ -125,7 +128,7 @@ export default function LandingPage() {
                 </p>
               </div>
 
-              {/* CARD 3 */}
+              {/* Card 3 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaChartLine className="text-purple-500 mx-auto text-5xl mb-4" />
@@ -141,7 +144,6 @@ export default function LandingPage() {
                   </span>
                 </p>
               </div>
-
             </div>
           </Container>
         </div>
@@ -155,8 +157,28 @@ export default function LandingPage() {
             Crafting perfect resumes with style and ease.
           </p>
         </footer>
-
       </div>
+
+      {/* AUTH MODAL */}
+      {openAuthModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl p-8 w-full max-w-md relative">
+            <button
+              onClick={(() => setOpenAuthModal(false))}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 font-bold"
+            >
+              X
+            </button>
+            {currentPage === "login" ? (
+              <Login setCurrentPage={setCurrentPage} />
+            ) : (
+              <Signup setCurrentPage={setCurrentPage} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default LandingPage;

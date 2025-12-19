@@ -17,7 +17,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const res = await fetch("http://localhost:8000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -39,20 +39,14 @@ export default function Login() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center relative"
-      style={{
-        backgroundImage:
-          "url('https://img.freepik.com/premium-photo/top-view-resumes-applicants-magnifying-glass-green-background-job-search-concept_35674-13811.jpg')",
-      }}
+      className="min-h-screen flex items-center justify-center px-4
+                 bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50"
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40"></div>
-
-      <div className="relative w-full max-w-md bg-white/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 border border-white/40 z-10">
+      <div className="relative w-full max-w-md bg-white/30 backdrop-blur-lg shadow-2xl rounded-3xl p-8 border border-white/30 z-10">
 
         {/* Heading */}
         <div className="text-center">
-          <div className="mx-auto mb-6 w-28 h-28 bg-white rounded-full shadow-lg flex items-center justify-center">
+          <div className="mx-auto mb-6 w-28 h-28 bg-white/50 rounded-full shadow-lg flex items-center justify-center">
             <FaUserCircle className="text-6xl text-purple-500" />
           </div>
 
@@ -61,7 +55,7 @@ export default function Login() {
                          animate-gradient-x hover:scale-105 transition-transform duration-500">
             Welcome Back
           </h1>
-          <p className="text-black-200 font-semibold mt-1 text-sm">
+          <p className="text-gray-700 font-semibold mt-1 text-sm">
             Login to your account
           </p>
         </div>
@@ -74,7 +68,7 @@ export default function Login() {
             placeholder="Email Address"
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-white shadow-inner border border-purple-200 focus:ring-2 focus:ring-purple-400 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-white/60 shadow-inner border border-purple-200 focus:ring-2 focus:ring-purple-400 focus:outline-none backdrop-blur-sm"
             required
           />
 
@@ -84,7 +78,7 @@ export default function Login() {
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 rounded-xl bg-white shadow-inner border border-purple-200 focus:ring-2 focus:ring-purple-400 focus:outline-none"
+            className="w-full px-4 py-3 rounded-xl bg-white/60 shadow-inner border border-purple-200 focus:ring-2 focus:ring-purple-400 focus:outline-none backdrop-blur-sm"
             required
           />
 
@@ -100,7 +94,7 @@ export default function Login() {
         </form>
 
         {/* Footer */}
-        <p className="text-center text-black-200 font-semibold mt-1 text-sm">
+        <p className="text-center text-gray-700 font-semibold mt-1 text-sm">
           Don’t have an account?{" "}
           <Link
             to="/signup"
