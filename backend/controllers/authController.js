@@ -9,17 +9,21 @@ const generateToken = (userId) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, profileImageUrl } = req.body;
+    const { name, email, password } = req.body;
 
-    // Check if user already exists
+    // Check if user exists
     const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+    if (userExists) return res.status(400).json({ message: "User already exists" });
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Build profile image URL if file uploaded
+    let profileImageUrl = "";
+    if (req.file) {
+      profileImageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    }
 
     // Create new user
     const user = await User.create({
@@ -29,7 +33,7 @@ const registerUser = async (req, res) => {
       profileImageUrl,
     });
 
-    // Return response
+    // Response
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -42,6 +46,7 @@ const registerUser = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // Login user (empty but no issues)
 const loginUser = async (req, res) => {

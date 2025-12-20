@@ -13,9 +13,18 @@ const ProfileInfoCard = ({ user }) => {
 
   if (!user) return null;
 
-  // Support backend fields
-  const fullName = user.fullName || user.name || "User";
-  const profileImage = user.profileImage || user.profileImageUrl || null;
+  // Name from backend
+  const fullName = user.name || "User";
+
+  // Build full URL for profile image
+ // profileImageUrl from backend
+const profileImage = user.profileImageUrl
+  ? user.profileImageUrl.startsWith("http") // already a full URL?
+    ? user.profileImageUrl
+    : `http://localhost:8000${user.profileImageUrl}`
+  : null;
+
+
 
   return (
     <div className="flex items-center gap-4">

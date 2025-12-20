@@ -1,45 +1,69 @@
 import React, { useState, useEffect } from "react";
 
 const ResumeSummaryCard = ({ imageUrl, title, lastUpdated, onSelect }) => {
-  const [bgColor, setBgColor] = useState("#ffffff");
+  const [bgColor, setBgColor] = useState("#f9fafb"); // slightly off-white
 
   useEffect(() => {
     if (imageUrl) {
       getLightColorFromImage(imageUrl)
         .then((color) => setBgColor(color))
-        .catch(() => setBgColor("#ffffff"));
+        .catch(() => setBgColor("#f9fafb"));
     }
-    // No else needed, initial state is already white
   }, [imageUrl]);
 
   return (
     <div
-      className="h-[300px] flex flex-col items-center justify-between rounded-lg border border-gray-200 hover:border-purple-300 overflow-hidden cursor-pointer"
-      style={{ backgroundColor: bgColor }}
       onClick={onSelect}
+      className="
+        h-[300px] flex flex-col justify-between
+        rounded-3xl overflow-hidden cursor-pointer
+        border-2 border-purple-300/60
+        ring-1 ring-black/5
+        transition-all duration-300
+        hover:scale-[1.04]
+        hover:border-purple-500
+        hover:ring-purple-300/40
+        hover:shadow-[0_20px_40px_-15px_rgba(124,58,237,0.45)]
+        relative
+        bg-white
+      "
+      style={{ backgroundColor: bgColor }}
     >
-      {/* Image */}
-      <div className="w-full h-[200px]">
+      {/* soft contrast overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-transparent to-black/10 pointer-events-none" />
+
+      {/* IMAGE */}
+      <div className="w-full h-[190px] relative z-10">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={title}
-            className="w-full h-full object-cover rounded"
+            className="
+              w-full h-full object-cover
+              transition-transform duration-500
+              hover:scale-105
+            "
           />
         ) : (
-          <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">No Image</span>
+          <div className="w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+            <span className="text-gray-500 text-sm font-medium">
+              No Preview
+            </span>
           </div>
         )}
       </div>
 
-      {/* Details */}
-      <div className="w-full px-4 py-3">
-        <h5 className="text-sm font-medium truncate overflow-hidden whitespace-nowrap">
+      {/* DETAILS */}
+      <div className="relative z-10 px-4 py-4 bg-white/70 backdrop-blur-md">
+        <h5
+          className="text-sm font-semibold text-gray-800 truncate"
+          title={title}
+        >
           {title}
         </h5>
-        <p className="text-xs font-medium text-gray-500 mt-0.5">
-          Last Updated: {lastUpdated}
+
+        <p className="text-xs text-gray-600 mt-1">
+          Last updated · {lastUpdated}
         </p>
       </div>
     </div>
@@ -48,7 +72,8 @@ const ResumeSummaryCard = ({ imageUrl, title, lastUpdated, onSelect }) => {
 
 export default ResumeSummaryCard;
 
-// Function to extract a light color from an image using canvas
+/* ================= COLOR EXTRACTION LOGIC (UNCHANGED) ================= */
+
 function getLightColorFromImage(imageUrl) {
   return new Promise((resolve, reject) => {
     if (!imageUrl || typeof imageUrl !== "string") {
@@ -67,8 +92,17 @@ function getLightColorFromImage(imageUrl) {
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      let r = 0, g = 0, b = 0, count = 0;
+      const imageData = ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      ).data;
+
+      let r = 0,
+        g = 0,
+        b = 0,
+        count = 0;
 
       for (let i = 0; i < imageData.length; i += 4) {
         const red = imageData[i];
@@ -84,7 +118,7 @@ function getLightColorFromImage(imageUrl) {
         }
       }
 
-      if (count === 0) resolve("#ffffff");
+      if (count === 0) resolve("#f9fafb");
       else {
         r = Math.round(r / count);
         g = Math.round(g / count);
@@ -93,8 +127,7 @@ function getLightColorFromImage(imageUrl) {
       }
     };
 
-    img.onerror = (e) => {
-      console.error("Failed to load image:", e);
+    img.onerror = () => {
       reject(new Error("Image could not be loaded or is blocked by CORS."));
     };
   });

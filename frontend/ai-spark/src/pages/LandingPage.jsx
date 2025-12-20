@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaPalette, FaChartLine } from "react-icons/fa";
 import Container from "../components/Container";
 import hero from "../assets/hero.png";
 import Login from "./Auth/Login";
 import Signup from "./Auth/SignUp";
 
-
 const LandingPage = () => {
   const [openAuthModal, setOpenAuthModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState("login"); // "login" or "signup"
+  const [currentPage, setCurrentPage] = useState("login");
+
+  // PAINT BRUSH STATE
+  const [splashes, setSplashes] = useState([]);
 
   const handleCTA = () => {
     setCurrentPage("signup");
@@ -20,10 +22,57 @@ const LandingPage = () => {
     setOpenAuthModal(true);
   };
 
- // const closeModal = () => setOpenAuthModal(false);
+  // CURSOR PAINT EFFECT
+  useEffect(() => {
+    const handleMove = (e) => {
+      const colors = [
+  "rgba(255, 0, 102, 0.45)",   // neon pink
+  "rgba(255, 94, 0, 0.45)",    // vivid orange
+  "rgba(138, 43, 226, 0.45)",  // electric purple
+  "rgba(255, 0, 0, 0.45)",     // bright red
+  "rgba(255, 215, 0, 0.40)",   // gold highlight
+];
+
+      
+      const splash = {
+        id: Date.now(),
+        x: e.clientX,
+        y: e.clientY,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      };
+
+      setSplashes((prev) => [...prev.slice(-20), splash]);
+
+      setTimeout(() => {
+        setSplashes((prev) => prev.filter((s) => s.id !== splash.id));
+      }, 1200);
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, []);
 
   return (
-    <div>
+    <div className="relative overflow-hidden">
+
+      {/* PAINT SPLASH LAYER */}
+      <div className="pointer-events-none fixed inset-0 z-10">
+        {splashes.map((s) => (
+          <span
+            key={s.id}
+            className="absolute rounded-full blur-3xl animate-pulse"
+            style={{
+              left: s.x - 60,
+              top: s.y - 60,
+              width: "120px",
+              height: "120px",
+              background: s.color,
+              transition: "all 1.2s ease-out"
+            }}
+          />
+        ))}
+      </div>
+
       {/* NAVBAR */}
       <div className="sticky top-0 z-50 bg-white/30 backdrop-blur-lg border-b border-pink-300 py-4">
         <Container>
@@ -52,7 +101,8 @@ const LandingPage = () => {
       <div className="py-16 bg-gradient-to-b from-pink-50 to-purple-50 border-4 border-pink-300 rounded-2xl mt-6 px-6 md:px-16">
         <Container>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* LEFT SIDE */}
+
+            {/* LEFT */}
             <div>
               <h2 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent 
                   bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 leading-tight">
@@ -61,10 +111,12 @@ const LandingPage = () => {
                   in Minutes
                 </span>
               </h2>
+
               <p className="text-gray-700 mt-4 text-lg md:text-xl font-medium">
                 Create ATS-friendly, beautiful resumes with live templates, smart editing, 
                 and one-click PDF export.
               </p>
+
               <div className="mt-8">
                 <button
                   onClick={handleCTA}
@@ -78,7 +130,7 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* RIGHT SIDE IMAGE */}
+            {/* RIGHT */}
             <div className="flex justify-center">
               <img
                 src={hero}
@@ -99,7 +151,8 @@ const LandingPage = () => {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {/* Card 1 */}
+
+              {/* CARD 1 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaEdit className="text-pink-500 mx-auto text-5xl mb-4" />
@@ -113,7 +166,7 @@ const LandingPage = () => {
                 </p>
               </div>
 
-              {/* Card 2 */}
+              {/* CARD 2 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaPalette className="text-orange-500 mx-auto text-5xl mb-4" />
@@ -128,7 +181,7 @@ const LandingPage = () => {
                 </p>
               </div>
 
-              {/* Card 3 */}
+              {/* CARD 3 */}
               <div className="bg-white shadow-xl border border-pink-200 rounded-3xl p-6 
                   hover:shadow-2xl hover:scale-105 transition-transform duration-300 text-center relative overflow-hidden">
                 <FaChartLine className="text-purple-500 mx-auto text-5xl mb-4" />
@@ -144,6 +197,7 @@ const LandingPage = () => {
                   </span>
                 </p>
               </div>
+
             </div>
           </Container>
         </div>
@@ -164,7 +218,7 @@ const LandingPage = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-3xl p-8 w-full max-w-md relative">
             <button
-              onClick={(() => setOpenAuthModal(false))}
+              onClick={() => setOpenAuthModal(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 font-bold"
             >
               X
