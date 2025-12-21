@@ -24,6 +24,12 @@ import ProjectDetailForm from "./Forms/ProjectDetailForm";
 import CertificationInfoForm from "./Forms/CertificationInfoForm";
 import AdditionalInfoForm from "./Forms/AdditionalInfoForm";
 import RenderResume from "../../components/ResumeTemplates/RenderResume";
+import axios from "axios";
+import { captureElementAsImage } from "../../utils/helper";
+import { fixTailwindColors } from "../../utils/helper";
+import { dataURLtoFile } from "../../utils/helper";
+import Modal from "../../components/Modal";
+import ThemeSelector from "./ThemeSelector";
 
 const EditResume = () => {
   const { resumeId } = useParams();
@@ -31,12 +37,15 @@ const EditResume = () => {
 
   const resumeRef = useRef(null);
   const resumeDownloadRef = useRef(null);
+  
 
   const [baseWidth, setBaseWidth] = useState(800);
   const [openThemeSelector, setOpenThemeSelector] = useState(false);
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
   const [currentPage, setCurrentPage] = useState("profile-info");
   const [progress, setProgress] = useState(20);
+
+  
 
   const [resumeData, setResumeData] = useState({
     title: "",
@@ -194,7 +203,7 @@ const validateAndNext = (e) => {
       break;
     }
 
-    case "additionalInfo": {
+    case "additional-info": {
       if (
         resumeData.languages.length === 0 ||
         !resumeData.languages[0]?.name?.trim()
@@ -227,30 +236,38 @@ const validateAndNext = (e) => {
 
 
 
-  const goToNextStep = ()=>{
-    const pages=[
-      "profile-info",
-      "contact-info",
-      "work-experience",
-      "education-info",
-      "skills",
-      "projects",
-      "certifications",
-      "additional-info"
-    ];
-    if(currentPage==="additionaInfo") setOpenPreviewModal(true);
+ const goToNextStep = () => {
+  const pages = [
+    "profile-info",
+    "contact-info",
+    "work-experience",
+    "education-info",
+    "skills",
+    "projects",
+    "certifications",
+    "additional-info",
+  ];
 
-    const currentIndex = pages.indexOf(currentPage);
+  const currentIndex = pages.indexOf(currentPage);
 
-    if(currentIndex!=-1 && currentIndex<pages.length-1){
-      const nextIndex=currentIndex+1;
-      setCurrentPage(pages[nextIndex]);
+  if (currentIndex === pages.length - 1) {
+    setOpenPreviewModal(true);
+    return;
+  }
 
-      const percent = Math.round((nextIndex/(pages.length-1))*100);
-      setProgress(precent);
-      window.scrollTo({top:0,behavior:"smooth"});
-    }
-  };
+  if (currentIndex !== -1) {
+    const nextIndex = currentIndex + 1;
+    setCurrentPage(pages[nextIndex]);
+
+    const percent = Math.round(
+      (nextIndex / (pages.length - 1)) * 100
+    );
+    setProgress(percent);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+};
+
 
 
   const goBack = () => {
@@ -370,7 +387,7 @@ const validateAndNext = (e) => {
 
             );
 
-            case "additionalInfo":
+            case "additional-info":
               return (
                 <AdditionalInfoForm
                 languages ={resumeData.languages}
@@ -459,6 +476,7 @@ const removeArrayItem = (section, index) => {
   });
 };
 
+
   const fetchResumeDetailsById = async () => {
     try {
       const response = await axiosInstance.get(
@@ -489,13 +507,130 @@ const removeArrayItem = (section, index) => {
     }
   };
 
-  const uploadResumeImages = async () => {};
-  const updateResumeDetails = async () => {};
-  const handleDeleteResume = async () => {};
+const uploadResumeImages = async () => {
+  try {
+    setIsLoading(true);
 
-  const reactToPrintFn = useReactToPrint({
-    content: () => resumeDownloadRef.current,
-  });
+    const resumeEl = resumeRef.current;
+    if (!resumeEl) throw new Error("Resume element not found");
+
+    // Save original styles
+    const originalTransform = resumeEl.style.transform;
+    const originalOrigin = resumeEl.style.transformOrigin;
+    const originalWidth = resumeEl.style.width;
+
+    // 🔍 REAL ZOOM (visual)
+    resumeEl.style.transform = "scale(1.35)"; // 🔥 increase to 1.5 if needed
+    resumeEl.style.transformOrigin = "top left";
+    resumeEl.style.width = "794px"; // keep A4 base width
+    resumeEl.style.background = "#ffffff";
+
+    // Fix Tailwind colors
+    fixTailwindColors(resumeEl);
+
+    // Capture full scaled content
+    const imageDataUrl = await captureElementAsImage(resumeEl, {
+      scale: 3, // image clarity
+      backgroundColor: "#ffffff",
+      width: resumeEl.scrollWidth * 1.35,
+      height: resumeEl.scrollHeight * 1.35,
+      windowWidth: resumeEl.scrollWidth * 1.35,
+      windowHeight: resumeEl.scrollHeight * 1.35,
+    });
+
+    // Restore styles
+    resumeEl.style.transform = originalTransform;
+    resumeEl.style.transformOrigin = originalOrigin;
+    resumeEl.style.width = originalWidth;
+
+    const thumbnailFile = dataURLtoFile(
+      imageDataUrl,
+      `resume-${resumeId}.png`
+    );
+
+    const profileImageFile = resumeData?.profileInfo?.profileImg || null;
+
+    const formData = new FormData();
+    if (profileImageFile) formData.append("profileImage", profileImageFile);
+    formData.append("thumbnail", thumbnailFile);
+
+    const uploadRes = await axiosInstance.put(
+      API_PATHS.RESUME.UPLOAD_IMAGES(resumeId),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    const { thumbnailLink, profilePreviewUrl } = uploadRes.data;
+
+    await updateResumeDetails(thumbnailLink, profilePreviewUrl);
+
+    toast.success("Resume saved successfully");
+    navigate("/dashboard");
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to save resume");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+const updateResumeDetails = async (thumbnailLink, profilePreviewUrl) => {
+  try {
+    const payload = {
+      ...resumeData,
+
+      thumbnailLink,
+
+      profileInfo: {
+        ...resumeData.profileInfo,
+        profilePreviewUrl,
+      },
+    };
+
+    await axiosInstance.put(
+      API_PATHS.RESUME.UPDATE(resumeId),
+      payload
+    );
+  } catch (error) {
+    console.error("Error updating resume details:", error);
+    toast.error("Failed to update resume details");
+  }
+};
+
+
+
+const handlePrint = useReactToPrint({
+  contentRef: resumeDownloadRef,
+  documentTitle: resumeData?.profileInfo?.fullName || "Resume",
+  pageStyle: `
+    @page { size: A4; margin: 20mm; }
+    body { -webkit-print-color-adjust: exact; }
+  `,
+});
+
+
+
+
+
+  const handleDeleteResume = async () => {
+    try{
+      setIsLoading(true);
+      const response=await axiosInstance.delete(API_PATHS.RESUME.DELETE(resumeId));
+      toast.success('Resume Deleted successfully')
+      navigate('/dashboard')
+    }
+    catch(err){
+      console.error("Error capturing image:",err);
+    }
+    finally{
+      setIsLoading(false);
+    }
+  };
+
+
+
 
   const updateBaseWidth = () => {
     if(resumeRef.current){
@@ -513,6 +648,8 @@ const removeArrayItem = (section, index) => {
       window.removeEventListener("resize", updateBaseWidth);
     };
   }, []);
+  
+  
 
   return (
     <DashboardLayout>
@@ -643,6 +780,87 @@ const removeArrayItem = (section, index) => {
 
         </div>
       </div>
+
+      <Modal
+  isOpen={openThemeSelector}
+  onClose={()=>setOpenThemeSelector(false)}
+  title="Change Theme"
+>
+  <div className="bg-white rounded-2xl w-[95vw] max-w-7xl h-[90vh] overflow-hidden">
+
+    <ThemeSelector
+      selectedTheme={resumeData?.template}
+      setSelectedTheme={(value) =>{
+        setResumeData((prevState)=>({
+          ...prevState,
+          template:value || prevState.template,
+        }));
+      }}
+      resumeData={null}
+      onClose={()=>setOpenThemeSelector(false)}
+    />
+  </div>
+</Modal>
+
+{openPreviewModal && (
+  <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
+    <div className="bg-white w-[98vw] h-[95vh] rounded-xl shadow-xl flex flex-col">
+
+      {/* Header */}
+      <div className="flex justify-between items-center px-4 py-3 border-b print:hidden">
+        <h2 className="font-semibold">
+          {resumeData?.title || "Resume Preview"}
+        </h2>
+
+        <div className="flex gap-2">
+         <button
+  onClick={handlePrint}
+  className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold
+             bg-gradient-to-r from-pink-500 via-orange-400 to-purple-500
+             text-white shadow-lg hover:shadow-2xl hover:scale-105
+             transition-all duration-300"
+>
+  <LuDownload className="text-[18px]" />
+  Download
+</button>
+
+
+          <button
+            onClick={() => setOpenPreviewModal(false)}
+            className="px-4 py-2 border rounded"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      {/* SCREEN PREVIEW WRAPPER */}
+      <div className="flex-1 overflow-auto bg-gray-100 flex justify-center py-6">
+        {/* ✅ PRINTABLE A4 */}
+        <div ref={resumeDownloadRef} className="print-a4 bg-white">
+          <RenderResume
+            templateId={resumeData?.template?.theme || ""}
+            resumeData={resumeData}
+            colorPalette={resumeData?.template?.colorPalette || []}
+          />
+        </div>
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+
+   
+
+
+
+   
+
+
+
+
     </DashboardLayout>
   );
 };

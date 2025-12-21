@@ -51,3 +51,42 @@
 .input-box{
   @apply w-full flex justify-between gap-3 text-sm text-black bg-gray-50/50 rounded px-4 py-3 mb-4 mt-3 border border-gray-100 outline-none focus-within:border-purple-300;
 }
+.resume-a4 {
+  width: 794px;
+  min-height: 1123px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+/* A4 page setup */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body {
+    margin: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide modal background */
+  .fixed,
+  .bg-black\/60 {
+    background: transparent !important;
+  }
+
+  /* Exact A4 size */
+  .print-a4 {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    box-sizing: border-box;
+    background: white;
+  }
+
+  /* Hide buttons & header */
+  .print\:hidden {
+    display: none !important;
+  }
+}

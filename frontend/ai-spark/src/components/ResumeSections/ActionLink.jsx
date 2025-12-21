@@ -1,19 +1,20 @@
 import React from "react";
 
-const ContactInfo = ({ icon, iconBG, value }) => {
+const ActionLink = ({ icon, link, bgColor }) => {
   return (
     <div className="flex items-center gap-3">
       <div
         className="w-[30px] h-[30px] flex items-center justify-center rounded-full"
-        style={{ backgroundColor: iconBG }}
+        style={{ backgroundColor: bgColor }}
       >
         {icon}
       </div>
-      <p className="flex-1 text-[16px] font-medium break-all">
-        {value || "-"}
+
+      <p className="text-[15px] font-medium underline cursor-pointer break-all">
+        {link}
       </p>
     </div>
   );
 };
 
-export default ContactInfo;
+export default ActionLink;

@@ -1,10 +1,13 @@
 import moment from 'moment';
+import html2canvas from 'html2canvas';
 
+// ---------------- EMAIL VALIDATION ----------------
 export const validateEmail = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
 };
 
+// ---------------- LIGHT COLOR EXTRACTION ----------------
 export const getLightColorFromImage = (imageUrl) => {
   return new Promise((resolve, reject) => {
     if (!imageUrl || typeof imageUrl !== "string") {
@@ -12,17 +15,14 @@ export const getLightColorFromImage = (imageUrl) => {
     }
 
     const img = new Image();
-
     if (!imageUrl.startsWith("data")) {
       img.crossOrigin = "anonymous";
     }
-
     img.src = imageUrl;
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
@@ -45,14 +45,8 @@ export const getLightColorFromImage = (imageUrl) => {
         }
       }
 
-      if (count === 0) {
-        resolve("#ffffff");
-      } else {
-        r = Math.round(r / count);
-        g = Math.round(g / count);
-        b = Math.round(b / count);
-        resolve(`rgb(${r},${g},${b})`);
-      }
+      if (count === 0) resolve("#ffffff");
+      else resolve(`rgb(${Math.round(r / count)},${Math.round(g / count)},${Math.round(b / count)})`);
     };
 
     img.onerror = (e) => {
@@ -62,8 +56,55 @@ export const getLightColorFromImage = (imageUrl) => {
   });
 };
 
-
-export function formatYearMonth(yearMonth){
-  return yearMonth ? moment(yearMonth,"YYYY-MM").format("MMM YYYY"):"";
-
+// ---------------- FORMAT YEAR-MONTH ----------------
+export function formatYearMonth(yearMonth) {
+  return yearMonth ? moment(yearMonth, "YYYY-MM").format("MMM YYYY") : "";
 }
+
+// ---------------- FIX TAILWIND COLORS ----------------
+export const fixTailwindColors = (element) => {
+  if (!element) return;
+  const elements = element.querySelectorAll("*");
+  elements.forEach((el) => {
+    const style = window.getComputedStyle(el);
+    ["color", "backgroundColor", "borderColor"].forEach((prop) => {
+      const value = style[prop];
+      if (value && value.includes("oklch")) {
+        el.style[prop] = "#000"; // fallback to black
+      }
+    });
+  });
+};
+
+// ---------------- CAPTURE ELEMENT AS IMAGE ----------------
+export async function captureElementAsImage(element) {
+  if (!element) throw new Error("No element provided");
+
+  const scale = window.devicePixelRatio || 2; // HIGH DPI
+
+  const canvas = await html2canvas(element, {
+    scale: scale,               // 🔥 MOST IMPORTANT
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: "#ffffff",
+    logging: false,
+    imageTimeout: 0,
+    removeContainer: true,
+  });
+
+  // Export at max quality
+  return canvas.toDataURL("image/png", 1.0);
+}
+
+// ---------------- DATA URL TO FILE ----------------
+export const dataURLtoFile = (dataUrl, fileName) => {
+  const arr = dataUrl.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+
+  return new File([u8arr], fileName, { type: mime });
+};
