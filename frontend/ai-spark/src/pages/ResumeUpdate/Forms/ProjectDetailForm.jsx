@@ -54,21 +54,30 @@ const ProjectDetailForm = ({
                 icon={<LuGithub />}
               />
 
-              {/* DESCRIPTION */}
-              <div className="md:col-span-2">
-                <label className="text-xs font-medium text-slate-600">
-                  Description
-                </label>
-                <textarea
-                  rows={3}
-                  placeholder="Short description about the project"
-                  className="form-input resize-none"
-                  value={project?.description || ""}
-                  onChange={({ target }) =>
-                    updateArrayItem(index, "description", target.value)
-                  }
-                />
-              </div>
+          {/* DESCRIPTION */}
+<div className="md:col-span-2">
+  <label className="text-xs font-medium text-slate-600 mb-1 block">
+    Description
+  </label>
+  <textarea
+    rows={4}
+    placeholder="Short description about the project"
+    value={project?.description || ""}
+    onChange={({ target }) =>
+      updateArrayItem(index, "description", target.value)
+    }
+    className="
+      w-full rounded-2xl px-4 py-3 text-sm
+      bg-white/50 backdrop-blur-md
+      border border-gray-200
+      shadow-sm
+      focus:outline-none focus:ring-2 focus:ring-pink-400
+      focus:border-pink-400
+      transition resize-none
+    "
+  />
+</div>
+
 
               {/* LIVE DEMO */}
               <div className="md:col-span-2">
