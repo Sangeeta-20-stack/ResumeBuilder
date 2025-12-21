@@ -20,7 +20,9 @@ const ProjectInfo = ({
         {title}
       </h3>
 
-      <p className="text-[15px] text-gray-700 font-medium mt-1">
+      <p className={`${
+          isPreview ? "text-sm" : "text-lg"
+        } font-semibold text-gray-900`}>
         {description}
       </p>
 

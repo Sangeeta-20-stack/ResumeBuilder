@@ -6,6 +6,7 @@ import {
   LuDownload,
   LuPalette,
   LuSave,
+  LuCircleCheckBig,
   LuTrash2,
 } from "react-icons/lu";
 import toast from "react-hot-toast";
@@ -34,6 +35,8 @@ import ThemeSelector from "./ThemeSelector";
 const EditResume = () => {
   const { resumeId } = useParams();
   const navigate = useNavigate();
+  const [atsScore, setAtsScore] = useState(null);
+
 
   const resumeRef = useRef(null);
   const resumeDownloadRef = useRef(null);
@@ -648,8 +651,150 @@ const handlePrint = useReactToPrint({
       window.removeEventListener("resize", updateBaseWidth);
     };
   }, []);
-  
-  
+
+
+// ✅ Role-specific ATS Keywords
+const ATS_KEYWORDS_BY_ROLE = {
+  fullstack: [
+    "javascript", "typescript", "react", "reactjs", "node", "node.js", "express",
+    "mongodb", "sql", "html", "css", "rest api", "docker", "git", "aws",
+    "python", "redux", "next.js", "jest", "graphql"
+  ],
+  frontend: [
+    "javascript", "typescript", "react", "reactjs", "vue", "angular",
+    "html", "css", "sass", "tailwind", "material-ui", "redux", "jest", "cypress"
+  ],
+  backend: [
+    "node", "node.js", "express", "python", "django", "flask", "java",
+    "spring", "sql", "postgresql", "mongodb", "rest api", "docker", "kubernetes"
+  ],
+  data: [
+    "python", "pandas", "numpy", "scikit-learn", "tensorflow", "pytorch",
+    "machine learning", "deep learning", "nlp", "sql", "nosql", "big data",
+    "spark", "hadoop", "data visualization"
+  ],
+  mobile: [
+    "ios", "android", "flutter", "kotlin", "swift", "react native", "xamarin"
+  ],
+  devops: [
+    "docker", "kubernetes", "jenkins", "github actions", "gitlab ci/cd", "circleci",
+    "aws", "azure", "gcp", "heroku", "netlify", "vercel", "serverless", "terraform", "ansible", "puppet", "chef"
+  ],
+  qa: [
+    "jest", "mocha", "chai", "selenium", "cypress", "junit", "pytest",
+    "robot framework", "testing library", "tdd", "bdd", "automation testing"
+  ],
+  security: [
+    "oauth", "jwt", "encryption", "ssl", "tls", "vulnerability", "penetration testing", "cybersecurity", "firewall", "cissp", "ceh", "ccna", "ccnp"
+  ]
+};
+
+// ✅ Determine keyword list based on role
+const getKeywordsByRole = (role = "") => {
+  role = role.toLowerCase();
+  if (role.includes("full stack")) return ATS_KEYWORDS_BY_ROLE.fullstack;
+  if (role.includes("frontend")) return ATS_KEYWORDS_BY_ROLE.frontend;
+  if (role.includes("backend")) return ATS_KEYWORDS_BY_ROLE.backend;
+  if (role.includes("data") || role.includes("ml")) return ATS_KEYWORDS_BY_ROLE.data;
+  if (role.includes("mobile")) return ATS_KEYWORDS_BY_ROLE.mobile;
+  if (role.includes("devops")) return ATS_KEYWORDS_BY_ROLE.devops;
+  if (role.includes("qa") || role.includes("tester") || role.includes("quality")) return ATS_KEYWORDS_BY_ROLE.qa;
+  if (role.includes("security") || role.includes("cyber")) return ATS_KEYWORDS_BY_ROLE.security;
+  return []; // fallback
+};
+
+// ✅ Extract all relevant text from resumeData
+const extractResumeText = (resumeData) => {
+  if (!resumeData) return "";
+
+  const {
+    profileInfo = {},
+    workExperience = [],
+    education = [],
+    skills = [],
+    projects = [],
+    certifications = [],
+    languages = [],
+    interests = [],
+  } = resumeData;
+
+  let text = [
+    profileInfo.fullName,
+    profileInfo.summary,
+    skills.map((s) => s.name).join(" "),
+    projects.map((p) => `${p.title} ${p.description}`).join(" "),
+    certifications.map((c) => `${c.title} ${c.issuer}`).join(" "),
+    languages.map((l) => l.name).join(" "),
+    interests.join(" "),
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  workExperience.forEach((exp) => {
+    text +=
+      " " +
+      [
+        exp.title || exp.role,
+        exp.company,
+        exp.description,
+      ]
+        .filter(Boolean)
+        .join(" ");
+  });
+
+  education.forEach((ed) => {
+    text +=
+      " " +
+      [
+        ed.degree,
+        ed.institution,
+        ed.description,
+      ]
+        .filter(Boolean)
+        .join(" ");
+  });
+
+  return text.toLowerCase(); // lowercase for case-insensitive matching
+};
+
+// ✅ Calculate ATS score for role-specific keywords
+const calculateATSScore = (resumeText, keywords) => {
+  if (!keywords || keywords.length === 0) return 0;
+
+  let matches = 0;
+  keywords.forEach((keyword) => {
+    if (resumeText.includes(keyword.toLowerCase())) matches++;
+  });
+
+  return Math.round((matches / keywords.length) * 100);
+};
+
+const handleATSScoreClick = () => {
+  if (!resumeData) {
+    toast.error("Resume data not ready!");
+    return;
+  }
+
+  const text = extractResumeText(resumeData);
+  const role = resumeData.profileInfo.designation || ""; // role from resume
+  const keywords = getKeywordsByRole(role);
+
+  if (keywords.length === 0) {
+    toast.error("No keyword list found for this role.");
+    return;
+  }
+
+  const score = calculateATSScore(text, keywords);
+  setAtsScore(score); // store score in state
+
+  // Optional: show found and missing keywords
+  const found = keywords.filter((k) => text.includes(k.toLowerCase()));
+  const missing = keywords.filter((k) => !text.includes(k.toLowerCase()));
+
+  toast.success(`ATS Score for ${role}: ${score}%`, { duration: 4000 });
+  console.log("Found Keywords:", found);
+  console.log("Missing Keywords:", missing);
+};
 
   return (
     <DashboardLayout>
@@ -679,15 +824,31 @@ const handlePrint = useReactToPrint({
               <span className="hidden md:block">Theme</span>
             </button>
 
-            <button
-              className="flex items-center gap-2 px-4 py-2 rounded-full
-              bg-white/70 border border-pink-300 text-pink-600
-              font-semibold hover:bg-pink-50 transition"
-              onClick={handleDeleteResume}
-            >
-              <LuTrash2 />
-              <span className="hidden md:block">Delete</span>
-            </button>
+{/* ATS Score Button */}
+<div className="flex items-center gap-3">
+  <button
+    className="flex items-center gap-2 px-4 py-2 rounded-full
+      bg-green-500 text-white font-semibold shadow-lg hover:scale-105 transition"
+    onClick={handleATSScoreClick}
+  >
+    <LuCircleCheckBig />
+    <span className="hidden md:block">ATS Score</span>
+  </button>
+
+  {/* Display Score Badge */}
+  {atsScore !== null && (
+    <span
+      className={`px-3 py-1 rounded-full font-semibold text-white
+        ${atsScore >= 80 ? "bg-green-600" :
+          atsScore >= 50 ? "bg-yellow-500" :
+          "bg-red-500"}`}
+    >
+      {atsScore}%
+    </span>
+  )}
+</div>
+
+
 
             <button
               className="flex items-center gap-2 px-4 py-2 rounded-full
@@ -700,6 +861,8 @@ const handlePrint = useReactToPrint({
                 Preview & Download
               </span>
             </button>
+
+           
 
           </div>
         </div>
