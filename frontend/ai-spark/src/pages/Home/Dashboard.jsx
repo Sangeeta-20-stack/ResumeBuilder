@@ -8,6 +8,8 @@ import DashboardLayout from "../../components/layouts/DashboardLayout";
 import ResumeSummaryCard from "../../components/Cards/ResumeSummaryCard";
 import CreateResumeForm from "../Home/CreateResumeForm";
 
+const API_URL = "https://cv-spark-backend.onrender.com";
+
 const Dashboard = () => {
   const navigate = useNavigate();
 
@@ -66,7 +68,7 @@ const Dashboard = () => {
 
       try {
         const response = await axios.get(
-          "http://localhost:8000/api/resume",
+          `${API_URL}/api/resume`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -185,3 +187,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
