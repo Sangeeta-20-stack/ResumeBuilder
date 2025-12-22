@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { FaUserPlus } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
+
+const API_URL = "https://cv-spark-backend.onrender.com";
+
+
 export default function SignUp() {
   const [profilePreview, setProfilePreview] = useState(null);
   const [profileFile, setProfileFile] = useState(null); // store actual file
@@ -68,7 +72,7 @@ export default function SignUp() {
       formDataToSend.append("password", formData.password);
       if (profileFile) formDataToSend.append("profileImage", profileFile);
 
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         body: formDataToSend
       });
@@ -195,3 +199,4 @@ export default function SignUp() {
     </div>
   );
 }
+
