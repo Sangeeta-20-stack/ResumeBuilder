@@ -652,7 +652,6 @@ const handlePrint = useReactToPrint({
     };
   }, []);
 
-
 // ✅ Role-specific ATS Keywords
 const ATS_KEYWORDS_BY_ROLE = {
   fullstack: [
@@ -691,7 +690,7 @@ const ATS_KEYWORDS_BY_ROLE = {
 
 // ✅ Determine keyword list based on role
 const getKeywordsByRole = (role = "") => {
-  role = role.toLowerCase();
+  role = role.toLowerCase().trim();
   if (role.includes("full stack")) return ATS_KEYWORDS_BY_ROLE.fullstack;
   if (role.includes("frontend")) return ATS_KEYWORDS_BY_ROLE.frontend;
   if (role.includes("backend")) return ATS_KEYWORDS_BY_ROLE.backend;
@@ -701,6 +700,15 @@ const getKeywordsByRole = (role = "") => {
   if (role.includes("qa") || role.includes("tester") || role.includes("quality")) return ATS_KEYWORDS_BY_ROLE.qa;
   if (role.includes("security") || role.includes("cyber")) return ATS_KEYWORDS_BY_ROLE.security;
   return []; // fallback
+};
+
+// ✅ Normalize text (remove punctuation, multiple spaces)
+const normalizeText = (text = "") => {
+  return text
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "") // remove punctuation
+    .replace(/\s+/g, " ") // replace multiple spaces with single space
+    .toLowerCase()
+    .trim();
 };
 
 // ✅ Extract all relevant text from resumeData
@@ -754,29 +762,40 @@ const extractResumeText = (resumeData) => {
         .join(" ");
   });
 
-  return text.toLowerCase(); // lowercase for case-insensitive matching
+  return normalizeText(text); // normalize for matching
 };
 
 // ✅ Calculate ATS score for role-specific keywords
 const calculateATSScore = (resumeText, keywords) => {
   if (!keywords || keywords.length === 0) return 0;
 
-  let matches = 0;
+  const normalizedText = normalizeText(resumeText);
+
+  const foundKeywords = [];
+  const missingKeywords = [];
+
   keywords.forEach((keyword) => {
-    if (resumeText.includes(keyword.toLowerCase())) matches++;
+    const normKeyword = normalizeText(keyword);
+    if (normalizedText.includes(normKeyword)) {
+      foundKeywords.push(keyword);
+    } else {
+      missingKeywords.push(keyword);
+    }
   });
 
-  return Math.round((matches / keywords.length) * 100);
+  const score = Math.round((foundKeywords.length / keywords.length) * 100);
+  return { score, foundKeywords, missingKeywords };
 };
 
+// ✅ Handler to compute ATS score
 const handleATSScoreClick = () => {
   if (!resumeData) {
     toast.error("Resume data not ready!");
     return;
   }
 
-  const text = extractResumeText(resumeData);
-  const role = resumeData.profileInfo.designation || ""; // role from resume
+  const resumeText = extractResumeText(resumeData);
+  const role = resumeData.profileInfo.designation || "";
   const keywords = getKeywordsByRole(role);
 
   if (keywords.length === 0) {
@@ -784,16 +803,14 @@ const handleATSScoreClick = () => {
     return;
   }
 
-  const score = calculateATSScore(text, keywords);
+  const { score, foundKeywords, missingKeywords } = calculateATSScore(resumeText, keywords);
+
   setAtsScore(score); // store score in state
 
-  // Optional: show found and missing keywords
-  const found = keywords.filter((k) => text.includes(k.toLowerCase()));
-  const missing = keywords.filter((k) => !text.includes(k.toLowerCase()));
+  console.log("Found Keywords:", foundKeywords);
+  console.log("Missing Keywords:", missingKeywords);
 
   toast.success(`ATS Score for ${role}: ${score}%`, { duration: 4000 });
-  console.log("Found Keywords:", found);
-  console.log("Missing Keywords:", missing);
 };
 
   return (
