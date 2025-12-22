@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
-
+const API_URL = "https://cv-spark-backend.onrender.com";
 export default function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -50,7 +50,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -161,3 +161,4 @@ export default function Login() {
     </div>
   );
 }
+
