@@ -1,4 +1,4 @@
-export const BASE_URL="http://localhost:8000";
+export const BASE_URL="https://cv-spark-backend.onrender.com";
 
 //util/apiPaths.js
 export const API_PATHS={
@@ -19,4 +19,5 @@ export const API_PATHS={
     IMAGE:{
         UPLOAD_IMAGE:"/api/auth/upload-image",
     },
+
 };
