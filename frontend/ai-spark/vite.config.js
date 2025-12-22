@@ -3,12 +3,11 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/', // <-- add this line to fix asset 404s
+  base: './', // relative paths for static hosting
   build: {
-    chunkSizeWarningLimit: 1000, // increase warning limit
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
-        // Automatically split all dependencies from node_modules
         manualChunks(id) {
           if (id.includes('node_modules')) {
             return id
